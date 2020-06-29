@@ -1,6 +1,6 @@
 #include <jni.h>
 #include <string>
-//#include "../../../../ndk01_AndFix/src/main/cpp/art_method.h"
+
 
 #include "art_method.h"
 #include "art_7_0.h"
@@ -16,24 +16,24 @@ FindThread findThread;
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_it_ndk01_1andfix_DexManager_replace(JNIEnv *env, jobject instance, jint sdk,
-                                             jobject wrong_method, jobject right_method) {
+Java_com_it_andfixcustom_1exercise_DexManager_replace(JNIEnv *env, jobject instance, jint sdk,
+                                                      jobject wrong_method, jobject right_method) {
 
 
-    if(sdk==23){//7.0
-        art7_0::mirror::ArtMethod* smeth =
-                (art7_0::mirror::ArtMethod*) env->FromReflectedMethod(wrong_method);
+    if (sdk > 23) {//7.0
+        art7_0::mirror::ArtMethod *smeth =
+                (art7_0::mirror::ArtMethod *) env->FromReflectedMethod(wrong_method);
 
-        art7_0::mirror::ArtMethod* dmeth =
-                (art7_0::mirror::ArtMethod*) env->FromReflectedMethod(right_method);
+        art7_0::mirror::ArtMethod *dmeth =
+                (art7_0::mirror::ArtMethod *) env->FromReflectedMethod(right_method);
 
         smeth->declaring_class_ = dmeth->declaring_class_;
-        smeth->access_flags_ = dmeth->access_flags_  | 0x0001;
+        smeth->access_flags_ = dmeth->access_flags_ | 0x0001;
         smeth->dex_code_item_offset_ = dmeth->dex_code_item_offset_;
         smeth->dex_method_index_ = dmeth->dex_method_index_;
         smeth->method_index_ = dmeth->method_index_;
         smeth->hotness_count_ = dmeth->hotness_count_;
-    } else if(sdk==22) { //6.0
+    } else if (sdk > 22) { //6.0
         //ArtMethod  Android 系统源码中
         art::mirror::ArtMethod *wrong = (art::mirror::ArtMethod *) env->FromReflectedMethod(
                 wrong_method);
@@ -53,15 +53,15 @@ Java_com_it_ndk01_1andfix_DexManager_replace(JNIEnv *env, jobject instance, jint
 }
 
 
-void replace_7_0(JNIEnv* env, jobject src, jobject dest) {
-    art7_0::mirror::ArtMethod* smeth =
-            (art7_0::mirror::ArtMethod*) env->FromReflectedMethod(src);
+void replace_7_0(JNIEnv *env, jobject src, jobject dest) {
+    art7_0::mirror::ArtMethod *smeth =
+            (art7_0::mirror::ArtMethod *) env->FromReflectedMethod(src);
 
-    art7_0::mirror::ArtMethod* dmeth =
-            (art7_0::mirror::ArtMethod*) env->FromReflectedMethod(dest);
+    art7_0::mirror::ArtMethod *dmeth =
+            (art7_0::mirror::ArtMethod *) env->FromReflectedMethod(dest);
 
     smeth->declaring_class_ = dmeth->declaring_class_;
-    smeth->access_flags_ = dmeth->access_flags_  | 0x0001;
+    smeth->access_flags_ = dmeth->access_flags_ | 0x0001;
     smeth->dex_code_item_offset_ = dmeth->dex_code_item_offset_;
     smeth->dex_method_index_ = dmeth->dex_method_index_;
     smeth->method_index_ = dmeth->method_index_;
@@ -70,12 +70,11 @@ void replace_7_0(JNIEnv* env, jobject src, jobject dest) {
 }
 
 
-
-
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_it_ndk01_1andfix_DexManager_replaceDalvik(JNIEnv *env, jobject instance, jint sdk,
-                                                   jobject wrong_method, jobject right_method) {
+Java_com_it_andfixcustom_1exercise_DexManager_replaceDalvik(JNIEnv *env, jobject instance, jint sdk,
+                                                            jobject wrong_method,
+                                                            jobject right_method) {
     // TODO: implement replaceDalvik()
     //    做  跟什么有关   虚拟机    java虚拟机 Method
 
@@ -91,13 +90,15 @@ Java_com_it_ndk01_1andfix_DexManager_replaceDalvik(JNIEnv *env, jobject instance
     void *dvm_hand = dlopen("libdvm.so", RTLD_NOW);
 //    sdk  10    以前是这样   10会发生变化
     findObject = (FindObject) dlsym(dvm_hand, sdk > 10 ?
-                                              "_Z20dvmDecodeIndirectRefP6ThreadP8_jobject" : "dvmDecodeIndirectRef");
+                                              "_Z20dvmDecodeIndirectRefP6ThreadP8_jobject"
+                                                       : "dvmDecodeIndirectRef");
     findThread = (FindThread) dlsym(dvm_hand, sdk > 10 ? "_Z13dvmThreadSelfv" : "dvmThreadSelf");
 
 
     // method   所声明的Class
     jclass methodClaz = env->FindClass("java/lang/reflect/Method");
-    jmethodID rightMethodId = env->GetMethodID(methodClaz, "getDeclaringClass", "()Ljava/lang/Class;");
+    jmethodID rightMethodId = env->GetMethodID(methodClaz, "getDeclaringClass",
+                                               "()Ljava/lang/Class;");
 //dalvik  odex   机器码
 //    firstFiled->status=CLASS_INITIALIZED
 //    art不需要    dalvik适配
